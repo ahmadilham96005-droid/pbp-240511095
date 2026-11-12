@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAKAD - Sistem Informasi Akademik</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased">
+
+    <!-- ================= PAGE LOGIN ================= -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-700 to-teal-900 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl text-2xl font-bold mb-3 shadow-inner">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">SIAKAD Universitas</h1>
+                <p class="text-sm text-slate-500 mt-1">Silakan masuk menggunakan akun akademik Anda</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Username / NIM / NIDN</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="username" required placeholder="cth: admin / mhs01" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="password" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 transition duration-200">
+                    Masuk ke Sistem
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-400">
+                &copy; 2026 Biro Administrasi Akademik & Kemahasiswaan
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MAIN DASHBOARD ================= -->
+    <div id="mainApp" class="hidden min-h-screen flex flex-col">
+        <!-- Top Navbar -->
+        <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white/10 p-2 rounded-lg">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <span class="font-bold text-lg tracking-wide">SIAKAD PORTAL</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm font-semibold" id="userDisplayName">Administrator Utama</div>
+                        <div class="text-xs text-emerald-200">Semester Genap 2025/2026</div>
+                    </div>
+                    <button onclick="handleLogout()" class="bg-emerald-800 hover:bg-emerald-900 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Keluar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Body with Sidebar -->
+        <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="w-full md:w-64 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 h-fit sticky top-24">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Menu Utama</div>
+                <nav class="space-y-1">
+                    <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition active-btn bg-emerald-50 text-emerald-600 font-semibold" data-target="dashboard">
+                        <i class="fa-solid fa-house w-5"></i><span>Beranda</span>
+                    </button>
+
+                    <!-- Group Input -->
+                    <div class="pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider px-3">Input Data Master</div>
+                    <button onclick="switchTab('input-mhs')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="input-mhs">
+                        <i class="fa-solid fa-user-graduate w-5"></i><span>Mahasiswa</span>
+                    </button>
+                    <button onclick="switchTab('input-dosen')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="input-dosen">
+                        <i class="fa-solid fa-chalkboard-user w-5"></i><span>Dosen</span>
+                    </button>
+                    <button onclick="switchTab('input-mk')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="input-mk">
+                        <i class="fa-solid fa-book w-5"></i><span>Mata Kuliah</span>
+                    </button>
+                    <button onclick="switchTab('input-ref')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="input-ref">
+                        <i class="fa-solid fa-building-columns w-5"></i><span>Kelas, Ruang, Prodi, Fak</span>
+                    </button>
+
+                    <!-- Group Proses -->
+                    <div class="pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider px-3">Proses Akademik</div>
+                    <button onclick="switchTab('proses-krs')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="proses-krs">
+                        <i class="fa-solid fa-file-lines w-5"></i><span>Pengisian KRS</span>
+                    </button>
+                    <button onclick="switchTab('proses-kuliah')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="proses-kuliah">
+                        <i class="fa-solid fa-calendar-check w-5"></i><span>Perkuliahan & Absen</span>
+                    </button>
+                    <button onclick="switchTab('proses-ganti')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="proses-ganti">
+                        <i class="fa-solid fa-right-left w-5"></i><span>Pergantian MK</span>
+                    </button>
+                    <button onclick="switchTab('proses-perwalian')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="proses-perwalian">
+                        <i class="fa-solid fa-hands-bound w-5"></i><span>Perwalian (PA)</span>
+                    </button>
+
+                    <!-- Group Output -->
+                    <div class="pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider px-3">Output / Laporan</div>
+                    <button onclick="switchTab('output-khs')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="output-khs">
+                        <i class="fa-solid fa-print w-5"></i><span>Cetak KHS</span>
+                    </button>
+                    <button onclick="switchTab('output-rekap')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition" data-target="output-rekap">
+                        <i class="fa-solid fa-chart-pie w-5"></i><span>Rekap & Data Master</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 space-y-6">
+
+                <!-- TAB: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content space-y-6">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-1">Selamat Datang di Portal SIAKAD</h2>
+                            <p class="text-emerald-100 text-sm">Kelola data akademik, input perkuliahan, dan cetak laporan dengan mudah.</p>
+                        </div>
+                        <div class="mt-4 md:mt-0 bg-white/10 px-4 py-2 rounded-xl border border-white/20 backdrop-blur-sm text-sm">
+                            <i class="fa-regular fa-calendar-days mr-2"></i> Rabu, 4 Nov 2026
+                        </div>
+                    </div>
+
+                    <!-- Statistik Cepat -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Total Mahasiswa</p>
+                                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="statMhs">1</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-user-graduate"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Total Dosen</p>
+                                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="statDosen">1</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-chalkboard-user"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Mata Kuliah</p>
+                                <h3 class="text-2xl font-bold text-slate-800 mt-1" id="statMk">1</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-book"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Fakultas Aktif</p>
+                                <h3 class="text-2xl font-bold text-slate-800 mt-1">3</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-building-columns"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: INPUT MAHASISWA -->
+                <div id="tab-input-mhs" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Input Data Mahasiswa</h3>
+                        <p class="text-xs text-slate-500">Tambah data mahasiswa baru ke database sistem.</p>
+                    </div>
+                    <form onsubmit="addMahasiswa(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">NIM</label>
+                            <input type="text" id="mhsNim" required placeholder="cth: 220101001" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Lengkap</label>
+                            <input type="text" id="mhsNama" required placeholder="cth: Budi Santoso" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Program Studi</label>
+                            <select id="mhsProdi" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <optgroup label="Fakultas Kedokteran">
+                                    <option value="Pendidikan Dokter (S1)">Pendidikan Dokter (S1)</option>
+                                    <option value="Profesi Dokter">Profesi Dokter (Dr)</option>
+                                    <option value="Keperawatan (S1)">Keperawatan (S1)</option>
+                                </optgroup>
+                                <optgroup label="Fakultas Teknik & Ilmu Komputer">
+                                    <option value="Teknik Informatika">Teknik Informatika</option>
+                                    <option value="Sistem Informasi">Sistem Informasi</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fakultas Utama</label>
+                            <select id="mhsFakultas" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>Fakultas Kedokteran</option>
+                                <option>Fakultas Teknik & Ilmu Komputer</option>
+                                <option>Fakultas Ekonomi & Bisnis</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Simpan Mahasiswa</button>
+                        </div>
+                    </form>
+
+                    <div class="mt-8">
+                        <h4 class="font-bold text-sm text-slate-700 mb-3">Daftar Mahasiswa Terdaftar</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">NIM</th>
+                                        <th class="p-3">Nama</th>
+                                        <th class="p-3">Prodi</th>
+                                        <th class="p-3">Fakultas</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableMhs" class="divide-y divide-slate-200">
+                                    <!-- Render via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: INPUT DOSEN -->
+                <div id="tab-input-dosen" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Input Data Dosen & Dosen PA</h3>
+                        <p class="text-xs text-slate-500">Tambah data pengajar dan dosen pembimbing akademik.</p>
+                    </div>
+                    <form onsubmit="addDosen(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">NIDN</label>
+                            <input type="text" id="dosenNidn" required placeholder="cth: 0412038901" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama & Gelar</label>
+                            <input type="text" id="dosenNama" required placeholder="cth: Dr. dr. H. Andi Wijaya, Sp.PD" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Simpan Dosen</button>
+                        </div>
+                    </form>
+                    <div class="mt-8">
+                        <h4 class="font-bold text-sm text-slate-700 mb-3">Daftar Dosen Terdaftar</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">NIDN</th>
+                                        <th class="p-3">Nama & Gelar</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableDosen" class="divide-y divide-slate-200">
+                                    <!-- Render via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: INPUT MATA KULIAH -->
+                <div id="tab-input-mk" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Input Mata Kuliah</h3>
+                        <p class="text-xs text-slate-500">Tambah daftar mata kuliah kurikulum.</p>
+                    </div>
+                    <form onsubmit="addMk(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kode MK</label>
+                            <input type="text" id="mkKode" required placeholder="cth: MED3101" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Mata Kuliah</label>
+                            <input type="text" id="mkNama" required placeholder="cth: Anatomi & Fisiologi Manusia" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jumlah SKS</label>
+                            <input type="number" id="mkSks" required value="4" min="1" max="6" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div class="md:col-span-3">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Simpan Mata Kuliah</button>
+                        </div>
+                    </form>
+                    <div class="mt-8">
+                        <h4 class="font-bold text-sm text-slate-700 mb-3">Daftar Mata Kuliah</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">Kode</th>
+                                        <th class="p-3">Nama Mata Kuliah</th>
+                                        <th class="p-3">SKS</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableMk" class="divide-y divide-slate-200">
+                                    <!-- Render via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: INPUT KELAS, RUANG, PRODI, FAKULTAS -->
+                <div id="tab-input-ref" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Referensi: Kelas, Ruangan, Prodi, & Fakultas</h3>
+                        <p class="text-xs text-slate-500">Kelola master referensi pendukung akademik.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-sm text-slate-700 mb-3"><i class="fa-solid fa-hospital mr-2 text-emerald-600"></i>Fakultas Kedokteran & Prodi</h4>
+                            <div class="text-xs text-slate-600 space-y-2">
+                                <div class="bg-white p-2.5 rounded-lg border"><strong>Fakultas Kedokteran:</strong>
+                                    <ul class="list-disc pl-5 mt-1 space-y-1 text-slate-500">
+                                        <li>S1 Pendidikan Dokter</li>
+                                        <li>Program Profesi Dokter</li>
+                                        <li>S1 Ilmu Keperawatan</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <h4 class="font-bold text-sm text-slate-700 mb-3"><i class="fa-solid fa-door-open mr-2 text-emerald-600"></i>Tambah Ruangan Kuliah</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="ruangNama" placeholder="Nama Ruangan (cth: Lab Anatomi 2)" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm">
+                                <button onclick="addRuang()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-semibold">Tambah Ruangan</button>
+                            </div>
+                            <div id="listRuang" class="mt-3 text-xs text-slate-600 space-y-1">
+                                <div>• Lab Anatomi & Patologi (Kapasitas: 45)</div>
+                                <div>• Ruang Kuliah FK-01 (Kapasitas: 60)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: PROSES KRS -->
+                <div id="tab-proses-krs" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Proses Pengisian & Validasi KRS</h3>
+                        <p class="text-xs text-slate-500">Pilih mata kuliah yang diambil oleh mahasiswa pada semester ini.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Mahasiswa</label>
+                            <select id="krsMhs" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>220101001 - Ahmad Fauzi (Kedokteran)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Mata Kuliah</label>
+                            <select id="krsMk" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>MED3101 - Anatomi & Fisiologi Manusia (4 SKS)</option>
+                                <option>MED3102 - Biokimia Kedokteran (3 SKS)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="submitKrs()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Masukkan ke KRS Mahasiswa</button>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-bold text-sm text-slate-700 mb-3">Daftar KRS Terdaftar</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                                    <tr>
+                                        <th class="p-3">NIM & Nama</th>
+                                        <th class="p-3">Mata Kuliah Diambil</th>
+                                        <th class="p-3">SKS</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableKrs" class="divide-y divide-slate-200">
+                                    <!-- Render via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: PROSES PERKULIAHAN & ABSEN -->
+                <div id="tab-proses-kuliah" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Proses Perkuliahan & Absensi Mahasiswa</h3>
+                        <p class="text-xs text-slate-500">Catat kehadiran pertemuan kelas secara real-time.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Mata Kuliah</label>
+                            <select class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>MED3101 - Anatomi & Fisiologi Manusia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pertemuan Ke-</label>
+                            <select class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>Pertemuan 1</option>
+                                <option>Pertemuan 2 (Praktikum Lab)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Kehadiran</label>
+                            <select id="absenStatus" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option value="Hadir">Hadir</option>
+                                <option value="Izin">Izin</option>
+                                <option value="Sakit">Sakit</option>
+                                <option value="Alpa">Alpa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="alert('Absensi berhasil disimpan ke sistem!')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Simpan Absensi</button>
+                </div>
+
+                <!-- TAB: PROSES PERGANTIAN MK -->
+                <div id="tab-proses-ganti" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Pergantian & Pembatalan Mata Kuliah (Add/Drop)</h3>
+                        <p class="text-xs text-slate-500">Proses perubahan KRS di masa perubahan KRS.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Mahasiswa</label>
+                            <input type="text" value="220101001 - Ahmad Fauzi" disabled class="w-full p-2.5 bg-slate-100 border border-slate-300 rounded-xl text-sm text-slate-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">MK yang Dibatalkan</label>
+                            <select class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>MED3103 - Patologi Umum</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">MK Pengganti</label>
+                            <select class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>MED3104 - Farmakologi Dasar (3 SKS)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="alert('Permohonan pergantian mata kuliah berhasil diproses.')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Proses Pergantian MK</button>
+                </div>
+
+                <!-- TAB: PROSES PERWALIAN -->
+                <div id="tab-proses-perwalian" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Catatan Perwalian & Konsultasi Akademik</h3>
+                        <p class="text-xs text-slate-500">Catatan bimbingan antara Dosen PA dan Mahasiswa Kedokteran.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Mahasiswa Bimbingan</label>
+                            <select class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+                                <option>Ahmad Fauzi (220101001) - IPK: 3.85 (Kedokteran)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Catatan / Topik Konsultasi</label>
+                            <textarea rows="4" placeholder="Konsultasi persiapan stase klinik dan target SKS blok semester..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm"></textarea>
+                        </div>
+                        <button onclick="alert('Catatan perwalian berhasil disimpan.')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Simpan Catatan Perwalian</button>
+                    </div>
+                </div>
+
+                <!-- TAB: OUTPUT KHS -->
+                <div id="tab-output-khs" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Cetak Kartu Hasil Studi (KHS)</h3>
+                            <p class="text-xs text-slate-500">Pratinjau dan cetak nilai per semester.</p>
+                        </div>
+                        <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-print"></i><span>Cetak KHS</span>
+                        </button>
+                    </div>
+                    <!-- KHS Card Preview -->
+                    <div class="p-6 border border-slate-300 rounded-2xl bg-slate-50 space-y-4">
+                        <div class="text-center border-b pb-4">
+                            <h4 class="font-bold text-base uppercase">Kartu Hasil Studi (KHS) Mahasiswa</h4>
+                            <p class="text-xs text-slate-500">Fakultas Kedokteran Universitas • Semester Genap 2025/2026</p>
+                        </div>
+                        <div class="grid grid-cols-2 text-xs gap-2">
+                            <div><strong>NIM:</strong> 220101001</div>
+                            <div><strong>Prodi:</strong> S1 Pendidikan Dokter</div>
+                            <div><strong>Nama:</strong> Ahmad Fauzi</div>
+                            <div><strong>IP Semester:</strong> 3.85</div>
+                        </div>
+                        <table class="w-full text-left text-xs bg-white rounded-xl overflow-hidden border">
+                            <thead class="bg-slate-200 text-slate-700 uppercase">
+                                <tr>
+                                    <th class="p-2.5">Kode</th>
+                                    <th class="p-2.5">Mata Kuliah</th>
+                                    <th class="p-2.5">SKS</th>
+                                    <th class="p-2.5">Nilai</th>
+                                    <th class="p-2.5">Mutu</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="p-2.5">MED3101</td>
+                                    <td class="p-2.5">Anatomi & Fisiologi Manusia</td>
+                                    <td class="p-2.5">4</td>
+                                    <td class="p-2.5 font-bold text-emerald-600">A</td>
+                                    <td class="p-2.5">16.0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: OUTPUT REKAP & LAPORAN -->
+                <div id="tab-output-rekap" class="tab-content hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div class="border-b pb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Rekapitulasi Data & Statistik Akademik</h3>
+                        <p class="text-xs text-slate-500">Laporan rekap keseluruhan mahasiswa, dosen, dan aktifitas.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 border rounded-xl bg-emerald-50/50 flex items-center justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">Rekap Data Mahasiswa Kedokteran</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Format laporan rekapitulasi per prodi.</p>
+                            </div>
+                            <button onclick="alert('Mengunduh rekap mahasiswa...')" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-semibold">Unduh Rekap</button>
+                        </div>
+                        <div class="p-4 border rounded-xl bg-teal-50/50 flex items-center justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">Rekap Presensi & Nilai Lab</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Laporan kehadiran seluruh mata kuliah.</p>
+                            </div>
+                            <button onclick="alert('Mengunduh rekap nilai...')" class="bg-teal-600 text-white px-3 py-2 rounded-lg text-xs font-semibold">Unduh Rekap</button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript Logika Aplikasi -->
+    <script>
+        // Database Dummy
+        let dbMahasiswa = [
+            { nim: '220101001', nama: 'Ahmad Fauzi', prodi: 'Pendidikan Dokter (S1)', fakultas: 'Fakultas Kedokteran' }
+        ];
+        let dbDosen = [
+            { nidn: '0412038901', nama: 'Dr. dr. H. Andi Wijaya, Sp.PD' }
+        ];
+        let dbMk = [
+            { kode: 'MED3101', nama: 'Anatomi & Fisiologi Manusia', sks: 4 }
+        ];
+        let dbKrs = [
+            { mhs: '220101001 - Ahmad Fauzi', mk: 'MED3101 - Anatomi & Fisiologi Manusia', sks: 4, status: 'Disetujui PA' }
+        ];
+
+        // Inisialisasi Tabel Saat Halaman Dimuat
+        window.onload = function() {
+            renderAllTables();
+        };
+
+        function renderAllTables() {
+            renderTableMahasiswa();
+            renderTableDosen();
+            renderTableMk();
+            renderTableKrs();
+        }
+
+        // Login Sederhana
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            document.getElementById('userDisplayName').innerText = user.toUpperCase() === 'ADMIN' ? 'Administrator Utama' : 'Mahasiswa (' + user + ')';
+            
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+        }
+
+        function handleLogout() {
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        // Navigasi Tab
+        function switchTab(targetId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + targetId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-50', 'text-emerald-600', 'font-semibold');
+            });
+            event.currentTarget.classList.add('bg-emerald-50', 'text-emerald-600', 'font-semibold');
+        }
+
+        // --- MANAJEMEN MAHASISWA ---
+        function addMahasiswa(e) {
+            e.preventDefault();
+            const nim = document.getElementById('mhsNim').value;
+            const nama = document.getElementById('mhsNama').value;
+            const prodi = document.getElementById('mhsProdi').value;
+            const fakultas = document.getElementById('mhsFakultas').value;
+
+            dbMahasiswa.push({ nim, nama, prodi, fakultas });
+            renderTableMahasiswa();
+            alert('Mahasiswa berhasil ditambahkan!');
+            e.target.reset();
+        }
+
+        function deleteMahasiswa(index) {
+            if(confirm('Apakah Anda yakin ingin menghapus data mahasiswa ini?')) {
+                dbMahasiswa.splice(index, 1);
+                renderTableMahasiswa();
+            }
+        }
+
+        function renderTableMahasiswa() {
+            const tbody = document.getElementById('tableMhs');
+            tbody.innerHTML = dbMahasiswa.map((m, index) => `
+                <tr>
+                    <td class="p-3 font-medium">${m.nim}</td>
+                    <td class="p-3">${m.nama}</td>
+                    <td class="p-3">${m.prodi}</td>
+                    <td class="p-3">${m.fakultas}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteMahasiswa(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition" title="Hapus Data">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('statMhs').innerText = dbMahasiswa.length;
+        }
+
+        // --- MANAJEMEN DOSEN ---
+        function addDosen(e) {
+            e.preventDefault();
+            const nidn = document.getElementById('dosenNidn').value;
+            const nama = document.getElementById('dosenNama').value;
+
+            dbDosen.push({ nidn, nama });
+            renderTableDosen();
+            alert('Dosen berhasil ditambahkan!');
+            e.target.reset();
+        }
+
+        function deleteDosen(index) {
+            if(confirm('Apakah Anda yakin ingin menghapus data dosen ini?')) {
+                dbDosen.splice(index, 1);
+                renderTableDosen();
+            }
+        }
+
+        function renderTableDosen() {
+            const tbody = document.getElementById('tableDosen');
+            tbody.innerHTML = dbDosen.map((d, index) => `
+                <tr>
+                    <td class="p-3 font-medium">${d.nidn}</td>
+                    <td class="p-3">${d.nama}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteDosen(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition" title="Hapus Data">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('statDosen').innerText = dbDosen.length;
+        }
+
+        // --- MANAJEMEN MATA KULIAH ---
+        function addMk(e) {
+            e.preventDefault();
+            const kode = document.getElementById('mkKode').value;
+            const nama = document.getElementById('mkNama').value;
+            const sks = document.getElementById('mkSks').value;
+
+            dbMk.push({ kode, nama, sks });
+            renderTableMk();
+            alert('Mata Kuliah berhasil ditambahkan!');
+            e.target.reset();
+        }
+
+        function deleteMk(index) {
+            if(confirm('Apakah Anda yakin ingin menghapus mata kuliah ini?')) {
+                dbMk.splice(index, 1);
+                renderTableMk();
+            }
+        }
+
+        function renderTableMk() {
+            const tbody = document.getElementById('tableMk');
+            tbody.innerHTML = dbMk.map((m, index) => `
+                <tr>
+                    <td class="p-3 font-medium">${m.kode}</td>
+                    <td class="p-3">${m.nama}</td>
+                    <td class="p-3">${m.sks} SKS</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteMk(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition" title="Hapus Data">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('statMk').innerText = dbMk.length;
+        }
+
+        // --- MANAJEMEN KRS ---
+        function submitKrs() {
+            const mhs = document.getElementById('krsMhs').value;
+            const mk = document.getElementById('krsMk').value;
+            dbKrs.push({ mhs, mk, sks: 4, status: 'Menunggu Persetujuan PA' });
+            renderTableKrs();
+            alert('KRS berhasil diajukan!');
+        }
+
+        function deleteKrs(index) {
+            if(confirm('Apakah Anda yakin ingin menghapus KRS ini?')) {
+                dbKrs.splice(index, 1);
+                renderTableKrs();
+            }
+        }
+
+        function renderTableKrs() {
+            const tbody = document.getElementById('tableKrs');
+            tbody.innerHTML = dbKrs.map((k, index) => `
+                <tr>
+                    <td class="p-3 font-medium">${k.mhs}</td>
+                    <td class="p-3">${k.mk}</td>
+                    <td class="p-3">${k.sks} SKS</td>
+                    <td class="p-3"><span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-xs font-semibold">${k.status}</span></td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteKrs(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition" title="Hapus Data">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Fungsi Ruang
+        function addRuang() {
+            const val = document.getElementById('ruangNama').value;
+            if(!val) return;
+            const container = document.getElementById('listRuang');
+            container.innerHTML += `<div>• ${val}</div>`;
+            document.getElementById('ruangNama').value = '';
+        }
+    </script>
+</body>
+</html>

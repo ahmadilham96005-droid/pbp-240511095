@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velora Rent - Next-Gen Vehicle Rental Management</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts (Plus Jakarta Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Chart.js for Futuristic Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            base: '#0d0707',
+                            card: '#181111',
+                            border: '#2a1a1a',
+                            hover: '#341d1d'
+                        },
+                        neon: {
+                            red: '#ef4444',
+                            crimson: '#dc2626',
+                            rose: '#f43f5e',
+                            orange: '#f97316',
+                            emerald: '#10b981'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-red': '0 0 20px -3px rgba(239, 68, 68, 0.4)',
+                        'neon-crimson': '0 0 20px -3px rgba(220, 38, 38, 0.4)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0d0707;
+            color: #f3f4f6;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Glassmorphism Styles Red Edition */
+        .glass-panel {
+            background: rgba(24, 17, 17, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0707;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a1a1a;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444;
+        }
+
+        /* Red Animated Gradients */
+        .gradient-text {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #b91c1c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen overflow-x-hidden custom-scrollbar">
+
+    <!-- ================= 1. LOGIN & REGISTER OVERLAY MODAL ================= -->
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-all duration-300">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-8 relative overflow-hidden shadow-2xl border border-red-500/30">
+            <!-- Red background glows -->
+            <div class="absolute -top-20 -left-20 w-40 h-40 bg-red-600/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-rose-600/20 rounded-full blur-3xl"></div>
+
+            <div class="text-center relative z-10 mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-red-600 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/30 text-white text-2xl font-black">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold tracking-tight">Velora <span class="gradient-text">RENT</span></h2>
+                <p class="text-xs text-gray-400 mt-1">Smart Vehicle Rental System Dashboard</p>
+            </div>
+
+            <!-- Login / Register Switch Tabs -->
+            <div class="flex bg-gray-950/80 p-1 rounded-xl mb-6 border border-red-900/40 text-xs font-semibold">
+                <button type="button" id="tab-btn-signin" onclick="switchAuthTab('signin')" class="w-1/2 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md transition-all">Sign In</button>
+                <button type="button" id="tab-btn-register" onclick="switchAuthTab('register')" class="w-1/2 py-2 rounded-lg text-gray-400 hover:text-white transition-all">Register</button>
+            </div>
+
+            <!-- ALERT / ERROR MESSAGE -->
+            <div id="auth-error-msg" class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/40 text-red-300 text-xs rounded-xl font-semibold text-center">
+                Username atau password salah!
+            </div>
+
+            <!-- FORM SIGN IN -->
+            <form id="form-signin" onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Username</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-user absolute left-3.5 top-3 text-gray-500 text-sm"></i>
+                        <input type="text" id="login-username" value="admin" required class="w-full pl-10 pr-4 py-2.5 bg-gray-950/60 border border-red-900/30 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition" placeholder="Masukkan ID">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-3 text-gray-500 text-sm"></i>
+                        <input type="password" id="login-password" value="admin123" required class="w-full pl-10 pr-4 py-2.5 bg-gray-950/60 border border-red-900/30 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-gray-400">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked class="rounded border-red-900/50 bg-gray-950 text-red-500 focus:ring-red-500">
+                        <span>Ingat Saya</span>
+                    </label>
+                    <a href="#" onclick="alert('Silakan hubungi administrator sistem untuk reset akun.')" class="text-red-400 hover:underline">Lupa Akses?</a>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-500/25 hover:shadow-red-500/40 hover:scale-[1.01] active:scale-[0.99] transition duration-200">
+                    Masuk ke System <i class="fa-solid fa-arrow-right-long ml-2"></i>
+                </button>
+            </form>
+
+            <!-- FORM REGISTER -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="hidden space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Nama Lengkap</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-id-card absolute left-3.5 top-3 text-gray-500 text-sm"></i>
+                        <input type="text" id="reg-name" required class="w-full pl-10 pr-4 py-2.5 bg-gray-950/60 border border-red-900/30 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition" placeholder="Nama Admin/Petugas">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Username Baru</label>
+                    <div class="relative">
+                        <i class="fa-regular fa-user absolute left-3.5 top-3 text-gray-500 text-sm"></i>
+                        <input type="text" id="reg-username" required class="w-full pl-10 pr-4 py-2.5 bg-gray-950/60 border border-red-900/30 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition" placeholder="Buat Username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-3 text-gray-500 text-sm"></i>
+                        <input type="password" id="reg-password" required class="w-full pl-10 pr-4 py-2.5 bg-gray-950/60 border border-red-900/30 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-500/25 hover:shadow-red-500/40 hover:scale-[1.01] active:scale-[0.99] transition duration-200">
+                    Daftar Akun Baru <i class="fa-solid fa-user-plus ml-2"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-red-950/60 text-center text-[11px] text-gray-400">
+                <span>Demo Credential: </span>
+                <span class="text-red-400 font-mono font-semibold">admin / admin123</span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= 2. MAIN SPA LAYOUT ================= -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row">
+
+        <!-- SIDEBAR NAV -->
+        <aside class="w-full md:w-72 glass-panel border-r border-red-950/50 flex-shrink-0 flex flex-col justify-between z-20">
+            <div>
+                <!-- Brand Logo -->
+                <div class="p-6 flex items-center justify-between border-b border-red-950/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-tr from-red-600 to-rose-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-neon-red">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-extrabold text-white text-base tracking-wide flex items-center gap-1">
+                                Velora <span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md font-mono border border-red-500/30">RENT</span>
+                            </h1>
+                            <p class="text-[10px] text-gray-400 font-medium">Rental Management v3.0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nav Menu Links -->
+                <nav class="p-4 space-y-1">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Main Controls</div>
+
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-white bg-gradient-to-r from-red-600/20 to-rose-600/20 border border-red-500/40 text-red-400 shadow-neon-red">
+                        <i class="fa-solid fa-chart-line w-4 text-sm"></i>
+                        <span>Dashboard Overview</span>
+                    </button>
+
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mt-6 mb-2">Master Data Input</div>
+
+                    <button onclick="switchTab('master-kendaraan')" id="nav-master-kendaraan" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-red-950/40">
+                        <i class="fa-solid fa-motorcycle w-4 text-sm"></i>
+                        <span>Data Armada Kendaraan</span>
+                    </button>
+
+                    <button onclick="switchTab('master-pelanggan')" id="nav-master-pelanggan" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-red-950/40">
+                        <i class="fa-solid fa-users-gear w-4 text-sm"></i>
+                        <span>Database Pelanggan</span>
+                    </button>
+
+                    <button onclick="switchTab('master-driver')" id="nav-master-driver" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-red-950/40">
+                        <i class="fa-solid fa-id-card-clip w-4 text-sm"></i>
+                        <span>Data Driver / Supir</span>
+                    </button>
+
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mt-6 mb-2">Transaksi & Kasir</div>
+
+                    <button onclick="switchTab('transaksi-sewa')" id="nav-transaksi-sewa" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-red-950/40">
+                        <i class="fa-solid fa-key w-4 text-sm"></i>
+                        <span>Form Sewa Baru</span>
+                    </button>
+
+                    <button onclick="switchTab('laporan')" id="nav-laporan" class="nav-btn w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-red-950/40">
+                        <i class="fa-solid fa-file-invoice-dollar w-4 text-sm"></i>
+                        <span>Rekap & Kuitansi</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Profile & System Status -->
+            <div class="p-4 border-t border-red-950/40">
+                <div class="flex items-center justify-between bg-gray-950/60 p-3 rounded-2xl border border-red-900/30">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-500 to-rose-600 p-0.5">
+                                <div id="user-avatar" class="w-full h-full bg-gray-950 rounded-[10px] flex items-center justify-center font-bold text-xs text-white">AD</div>
+                            </div>
+                            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-gray-950 rounded-full"></span>
+                        </div>
+                        <div>
+                            <p id="user-display-name" class="text-xs font-bold text-white leading-tight">Admin System</p>
+                            <span class="text-[10px] text-emerald-400 font-mono">Online</span>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-gray-400 hover:text-red-400 transition p-1.5" title="Logout">
+                        <i class="fa-solid fa-power-off text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE CONTENT -->
+        <main class="flex-1 flex flex-col min-w-0 bg-dark-base overflow-y-auto custom-scrollbar">
+
+            <!-- TOP NAVBAR HEADER -->
+            <header class="glass-panel sticky top-0 z-30 px-6 py-4 flex items-center justify-between border-b border-red-950/40">
+                <div>
+                    <h2 id="page-title" class="text-lg font-extrabold text-white tracking-wide">Dashboard Overview</h2>
+                    <p id="page-subtitle" class="text-xs text-gray-400">Pantau performa rental kendaraan dan aktivitas transaksi secara real-time.</p>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="relative hidden sm:block">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-500 text-xs"></i>
+                        <input type="text" placeholder="Cari Nopol, Nama, Trx..." class="pl-9 pr-4 py-1.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-gray-200 focus:outline-none focus:border-red-500 w-48 transition">
+                    </div>
+
+                    <button onclick="switchTab('transaksi-sewa')" class="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl text-xs font-bold shadow-neon-red transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Sewa Baru</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- MAIN DYNAMIC CONTENT CONTAINER -->
+            <div class="p-6 space-y-6">
+
+                <!-- DYNAMIC NOTIFICATION BANNER -->
+                <div id="alert-banner" class="hidden p-4 rounded-2xl glass-panel border border-red-500/30 text-xs font-semibold flex items-center justify-between transition-all">
+                    <div class="flex items-center gap-3">
+                        <div id="alert-icon-box" class="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center text-sm">
+                            <i id="alert-icon" class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <span id="alert-message" class="text-gray-200">Notification Message</span>
+                    </div>
+                    <button onclick="closeAlert()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <!-- TAB 1: DASHBOARD OVERVIEW -->
+                <section id="tab-dashboard" class="tab-content space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div class="glass-panel p-5 rounded-2xl border border-red-950/40 hover:border-red-500/40 transition duration-300 relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-red-500/10 rounded-full blur-xl group-hover:bg-red-500/20 transition"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Armada</p>
+                                    <h3 id="stat-total-armada" class="text-3xl font-black text-white mt-1">0</h3>
+                                </div>
+                                <div class="w-11 h-11 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center text-lg border border-red-500/20">
+                                    <i class="fa-solid fa-car-side"></i>
+                                </div>
+                            </div>
+                            <p id="stat-detail-armada" class="text-[11px] text-red-400 mt-3 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-motorcycle"></i> <span>0 Mobil • 0 Motor</span>
+                            </p>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-2xl border border-red-950/40 hover:border-orange-500/40 transition duration-300 relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-orange-500/10 rounded-full blur-xl group-hover:bg-orange-500/20 transition"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sedang Tersewa</p>
+                                    <h3 id="stat-unit-tersewa" class="text-3xl font-black text-orange-400 mt-1">0</h3>
+                                </div>
+                                <div class="w-11 h-11 bg-orange-500/10 text-orange-400 rounded-xl flex items-center justify-center text-lg border border-orange-500/20">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-3 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span> Unit aktif di jalanan
+                            </p>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-2xl border border-red-950/40 hover:border-rose-500/40 transition duration-300 relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Pelanggan Aktif</p>
+                                    <h3 id="stat-total-pelanggan" class="text-3xl font-black text-rose-400 mt-1">0</h3>
+                                </div>
+                                <div class="w-11 h-11 bg-rose-500/10 text-rose-400 rounded-xl flex items-center justify-center text-lg border border-rose-500/20">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-rose-400 mt-3 font-semibold">Terverifikasi sistem</p>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-2xl border border-red-950/40 hover:border-emerald-500/40 transition duration-300 relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Revenue</p>
+                                    <h3 id="stat-total-pendapatan" class="text-2xl font-black text-emerald-400 mt-1">Rp 0</h3>
+                                </div>
+                                <div class="w-11 h-11 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-lg border border-emerald-500/20">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-emerald-400 mt-3 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-circle-up"></i> Pembayaran Lunas
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40 lg:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-column text-red-400"></i> Statistik Pendapatan Rental
+                                </h3>
+                                <span class="text-[10px] bg-gray-950 border border-red-900/30 px-2.5 py-1 rounded-lg text-gray-400 font-mono">Bulan Ini</span>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="dashboardChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                    <i class="fa-solid fa-pie-chart text-rose-400"></i> Status Ketersediaan
+                                </h3>
+                                <div id="armada-progress-container" class="space-y-4"></div>
+                            </div>
+                            <div class="pt-4 mt-6 border-t border-red-950/40">
+                                <button onclick="switchTab('master-kendaraan')" class="w-full py-2.5 bg-gray-950 hover:bg-red-950/50 text-gray-300 font-bold rounded-xl text-xs transition border border-red-900/30 flex items-center justify-center gap-2">
+                                    <span>Kelola Master Armada</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: MASTER KENDARAAN -->
+                <section id="tab-master-kendaraan" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40">
+                            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-square-plus text-red-400"></i> Form Tambah / Edit Armada
+                            </h3>
+                            <form id="form-kendaraan" onsubmit="saveKendaraan(event)" class="space-y-4">
+                                <input type="hidden" id="kendaraan-id">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori Jenis</label>
+                                    <select id="kendaraan-jenis" required class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                        <option value="Mobil">Mobil (Roda 4)</option>
+                                        <option value="Motor">Motor (Roda 2)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Merk & Nama Kendaraan</label>
+                                    <input type="text" id="kendaraan-nama" required placeholder="Contoh: Toyota Fortuner GR / NMAX 155" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Plat Nomor (Nopol)</label>
+                                    <input type="text" id="kendaraan-plat" required placeholder="B 1234 ABC" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 font-mono uppercase">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Tarif Sewa / Hari (Rp)</label>
+                                    <input type="number" id="kendaraan-harga" required placeholder="350000" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Transmisi</label>
+                                    <select id="kendaraan-transmisi" required class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                        <option value="Automatic">Automatic (AT)</option>
+                                        <option value="Manual">Manual (MT)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">URL Gambar Kendaraan</label>
+                                    <input type="text" id="kendaraan-gambar" placeholder="Standard Gambar default jika kosong" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Status Ketersediaan</label>
+                                    <select id="kendaraan-status" required class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                        <option value="Tersedia">Tersedia (Ready)</option>
+                                        <option value="Tersewa">Tersewa</option>
+                                        <option value="Perawatan">Perawatan (Servis)</option>
+                                    </select>
+                                </div>
+                                <div class="flex gap-2 pt-2">
+                                    <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs rounded-xl transition shadow-neon-red">Simpan Data</button>
+                                    <button type="button" onclick="resetFormKendaraan()" class="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold text-xs rounded-xl transition">Reset</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40 lg:col-span-2">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-red-950/40 gap-3">
+                                <h3 class="text-sm font-bold text-white">Database Armada Kendaraan</h3>
+                                <input type="text" id="search-kendaraan" onkeyup="renderKendaraanTable()" placeholder="Filter merk / nopol..." class="px-3.5 py-1.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 w-48">
+                            </div>
+                            <div class="overflow-x-auto mt-4">
+                                <table class="w-full text-left text-xs text-gray-300">
+                                    <thead class="bg-gray-950/80 text-gray-400 font-semibold uppercase text-[10px] tracking-wider border-b border-red-950/50">
+                                        <tr>
+                                            <th class="p-3">Foto</th>
+                                            <th class="p-3">Jenis</th>
+                                            <th class="p-3">Nama Armada</th>
+                                            <th class="p-3">Nopol</th>
+                                            <th class="p-3">Tarif/Hari</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-kendaraan-body" class="divide-y divide-red-950/40"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: MASTER PELANGGAN -->
+                <section id="tab-master-pelanggan" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40">
+                            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus text-rose-400"></i> Input Pelanggan Baru
+                            </h3>
+                            <form id="form-pelanggan" onsubmit="savePelanggan(event)" class="space-y-4">
+                                <input type="hidden" id="pelanggan-id">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Nama Lengkap (Sesuai KTP)</label>
+                                    <input type="text" id="pelanggan-nama" required placeholder="Masukkan nama" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Nomor NIK / KTP</label>
+                                    <input type="number" id="pelanggan-nik" required placeholder="320101xxxxxx" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">No HP / WhatsApp</label>
+                                    <input type="text" id="pelanggan-hp" required placeholder="08123456789" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Alamat Domisili</label>
+                                    <textarea id="pelanggan-alamat" rows="3" required placeholder="Alamat rumah" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"></textarea>
+                                </div>
+                                <div class="flex gap-2 pt-2">
+                                    <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs rounded-xl transition shadow-neon-red">Simpan Pelanggan</button>
+                                    <button type="button" onclick="resetFormPelanggan()" class="px-4 py-2.5 bg-gray-900 text-gray-300 font-bold text-xs rounded-xl">Reset</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40 lg:col-span-2">
+                            <h3 class="text-sm font-bold text-white mb-4">Database Pelanggan Terdaftar</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-gray-300">
+                                    <thead class="bg-gray-950/80 text-gray-400 font-semibold uppercase text-[10px] tracking-wider border-b border-red-950/50">
+                                        <tr>
+                                            <th class="p-3">Nama Pelanggan</th>
+                                            <th class="p-3">NIK KTP</th>
+                                            <th class="p-3">WhatsApp</th>
+                                            <th class="p-3">Alamat</th>
+                                            <th class="p-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-pelanggan-body" class="divide-y divide-red-950/40"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 4: MASTER DRIVER -->
+                <section id="tab-master-driver" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40">
+                            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-id-card text-emerald-400"></i> Input Supir / Driver
+                            </h3>
+                            <form id="form-driver" onsubmit="saveDriver(event)" class="space-y-4">
+                                <input type="hidden" id="driver-id">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Nama Lengkap Supir</label>
+                                    <input type="text" id="driver-nama" required placeholder="Nama supir" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Nomor SIM (A/C)</label>
+                                    <input type="text" id="driver-sim" required placeholder="SIM-A-xxxx" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">No HP</label>
+                                    <input type="text" id="driver-hp" required placeholder="0899xxxx" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Tarif Layanan / Hari (Rp)</label>
+                                    <input type="number" id="driver-tarif" required placeholder="150000" class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Status Driver</label>
+                                    <select id="driver-status" required class="w-full px-3.5 py-2.5 bg-gray-950/80 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                        <option value="Ready">Ready (Tersedia)</option>
+                                        <option value="Bertugas">Sedang Bertugas</option>
+                                        <option value="Off">Libur / Off</option>
+                                    </select>
+                                </div>
+                                <div class="flex gap-2 pt-2">
+                                    <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 text-white font-bold text-xs rounded-xl transition shadow-neon-red">Simpan Driver</button>
+                                    <button type="button" onclick="resetFormDriver()" class="px-4 py-2.5 bg-gray-900 text-gray-300 font-bold text-xs rounded-xl">Reset</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="glass-panel p-6 rounded-3xl border border-red-950/40 lg:col-span-2">
+                            <h3 class="text-sm font-bold text-white mb-4">Daftar Mitra Supir Profesional</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-gray-300">
+                                    <thead class="bg-gray-950/80 text-gray-400 font-semibold uppercase text-[10px] tracking-wider border-b border-red-950/50">
+                                        <tr>
+                                            <th class="p-3">Nama Supir</th>
+                                            <th class="p-3">No SIM</th>
+                                            <th class="p-3">No HP</th>
+                                            <th class="p-3">Tarif/Hari</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-driver-body" class="divide-y divide-red-950/40"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: FORM TRANSAKSI SEWA -->
+                <section id="tab-transaksi-sewa" class="tab-content hidden space-y-6">
+                    <div class="glass-panel p-8 rounded-3xl border border-red-950/40 max-w-4xl mx-auto relative overflow-hidden">
+                        <div class="absolute -top-16 -right-16 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+                        <div class="border-b border-red-950/40 pb-4 mb-6">
+                            <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-signature text-red-400"></i> Formulir Transaksi Rental Baru
+                            </h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Pilih penyewa, armada yang ready, serta durasi sewa untuk checkout otomatis.</p>
+                        </div>
+                        <form id="form-transaksi" onsubmit="processTransaksiSewa(event)" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Pilih Pelanggan <span class="text-rose-500">*</span></label>
+                                    <select id="trx-pelanggan-id" required class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Pilih Kendaraan Ready <span class="text-rose-500">*</span></label>
+                                    <select id="trx-kendaraan-id" onchange="calculateRentalTotal()" required class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"></select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Tgl Mulai Sewa <span class="text-rose-500">*</span></label>
+                                    <input type="date" id="trx-tgl-sewa" onchange="calculateRentalTotal()" required class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Tgl Pengembalian <span class="text-rose-500">*</span></label>
+                                    <input type="date" id="trx-tgl-kembali" onchange="calculateRentalTotal()" required class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Layanan Supir</label>
+                                    <select id="trx-driver-id" onchange="calculateRentalTotal()" class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                        <option value="none">Lepas Kunci (Tanpa Supir)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="bg-gray-950/90 p-5 rounded-2xl border border-red-500/30 space-y-3">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-red-400">Ringkasan Estimasi Biaya</h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                                    <div>
+                                        <span class="text-gray-400 block text-[11px]">Durasi Sewa:</span>
+                                        <span id="calc-durasi" class="font-extrabold text-white text-sm">1 Hari</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block text-[11px]">Biaya Kendaraan:</span>
+                                        <span id="calc-biaya-kendaraan" class="font-semibold text-gray-200">Rp 0</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block text-[11px]">Biaya Supir:</span>
+                                        <span id="calc-biaya-driver" class="font-semibold text-gray-200">Rp 0</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400 block text-[11px]">Total Bayar:</span>
+                                        <span id="calc-total" class="font-black text-red-400 text-base">Rp 0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Metode Pembayaran</label>
+                                    <select id="trx-metode-bayar" class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                        <option value="Tunai / Cash">Tunai / Cash</option>
+                                        <option value="Transfer QRIS">QRIS / E-Wallet Instant</option>
+                                        <option value="Transfer Bank BCA">Transfer Bank (BCA/Mandiri)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Jaminan KTP / Catatan</label>
+                                    <input type="text" id="trx-catatan" placeholder="Contoh: Jaminan KTP Asli + Sepeda Motor" class="w-full px-3.5 py-2.5 bg-gray-950 border border-red-900/30 rounded-xl text-xs text-white focus:outline-none focus:border-red-500">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:opacity-90 text-white font-extrabold text-sm rounded-xl transition shadow-neon-red flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-lock text-xs"></i>
+                                <span>Konfirmasi & Terbitkan Transaksi</span>
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- TAB 6: REKAP LAPORAN & KUITANSI -->
+                <section id="tab-laporan" class="tab-content hidden space-y-6">
+                    <div class="glass-panel p-6 rounded-3xl border border-red-950/40">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-red-950/40 gap-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Riwayat Transaksi & Rekap Pendapatan</h3>
+                                <p class="text-xs text-gray-400">Kelola pengembalian unit serta cetak nota kuitansi digital.</p>
+                            </div>
+                            <button onclick="window.print()" class="px-4 py-2 bg-gray-900 hover:bg-red-950/50 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-red-900/40">
+                                <i class="fa-solid fa-print"></i>
+                                <span>Cetak Rekap (PDF)</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto mt-4">
+                            <table class="w-full text-left text-xs text-gray-300">
+                                <thead class="bg-gray-950/80 text-gray-400 font-semibold uppercase text-[10px] tracking-wider border-b border-red-950/50">
+                                    <tr>
+                                        <th class="p-3">Kode Trx</th>
+                                        <th class="p-3">Pelanggan</th>
+                                        <th class="p-3">Kendaraan</th>
+                                        <th class="p-3">Durasi</th>
+                                        <th class="p-3">Total Biaya</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-laporan-body" class="divide-y divide-red-950/40"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MODAL NOTA KUITANSI DIGITAL ================= -->
+    <div id="modal-nota" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+        <div class="bg-white text-gray-800 rounded-3xl shadow-2xl overflow-hidden max-w-md w-full font-sans">
+            <div id="printable-area" class="p-6 space-y-4">
+                <div class="flex justify-between items-start border-b border-gray-200 pb-4">
+                    <div>
+                        <h2 class="text-xl font-black text-red-600 tracking-tight">Velora RENT</h2>
+                        <p class="text-[11px] text-gray-500">Jl. Utama Boulevard No. 88, Jakarta</p>
+                        <p class="text-[11px] text-gray-500">Hotline: 0812-9988-7766</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block px-2 py-0.5 bg-red-50 text-red-700 font-mono text-[10px] font-bold rounded">KUITANSI SEWA</span>
+                        <p id="nota-kode" class="text-xs font-mono font-bold text-gray-800 mt-1">#TRX-000</p>
+                        <p id="nota-tgl" class="text-[10px] text-gray-400">01/11/2026</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-3.5 rounded-2xl grid grid-cols-2 gap-3 text-xs border border-gray-100">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400">Penyewa:</span>
+                        <p id="nota-pelanggan-nama" class="font-bold text-gray-800">-</p>
+                        <p id="nota-pelanggan-hp" class="text-gray-500 text-[11px]">-</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400">Kendaraan:</span>
+                        <p id="nota-kendaraan-nama" class="font-bold text-gray-800">-</p>
+                        <p id="nota-kendaraan-plat" class="text-gray-500 text-[11px] uppercase font-mono">-</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-gray-100">
+                        <span class="text-gray-500">Periode Sewa</span>
+                        <span id="nota-periode" class="font-semibold text-gray-800">-</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-gray-100">
+                        <span class="text-gray-500">Layanan Driver</span>
+                        <span id="nota-driver" class="font-semibold text-gray-800">-</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-gray-100">
+                        <span class="text-gray-500">Metode Bayar</span>
+                        <span id="nota-metode" class="font-semibold text-gray-800">-</span>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 p-4 rounded-2xl flex justify-between items-center border border-red-100">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-red-500">Total Lunas</span>
+                        <p id="nota-total" class="text-xl font-black text-red-700">Rp 0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-white p-1 rounded-lg border border-red-200 flex items-center justify-center">
+                        <i class="fa-solid fa-qrcode text-2xl text-red-900"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-center text-[11px] text-gray-500 pt-3">
+                    <div>
+                        <p class="mb-6">Penyewa</p>
+                        <p class="font-bold text-gray-800">( ....................... )</p>
+                    </div>
+                    <div>
+                        <p class="mb-6">Petugas Kasir</p>
+                        <p id="nota-kasir-nama" class="font-bold text-gray-800">( Admin Rental )</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end gap-2 no-print">
+                <button onclick="closeModalNota()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition">Tutup</button>
+                <button onclick="window.print()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Cetak Kuitansi</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= INLINE JAVASCRIPT LOGIC ================= -->
+    <script>
+        // DATA AKUN TERDAFTAR SYSTEM
+        let registeredUsers = [
+            { username: 'admin', password: 'admin123', name: 'Admin System' }
+        ];
+
+        let currentUser = null;
+
+        // INITIAL STATE DATA ARMADA KENDARAAN
+        let dataKendaraan = [
+            { id: 1, jenis: 'Mobil', nama: 'Toyota Fortuner GR', plat: 'B 1001 RNT', harga: 750000, transmisi: 'Automatic', status: 'Tersedia', img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=300&q=80' },
+            { id: 2, jenis: 'Mobil', nama: 'Honda HR-V RS', plat: 'B 2240 UIO', harga: 450000, transmisi: 'Automatic', status: 'Tersewa', img: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=300&q=80' },
+            { id: 3, jenis: 'Motor', nama: 'Yamaha NMAX 155', plat: 'B 6612 PQR', harga: 130000, transmisi: 'Automatic', status: 'Tersedia', img: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=300&q=80' },
+            { id: 4, jenis: 'Motor', nama: 'Honda Vespa Primavera', plat: 'B 4110 TGB', harga: 175000, transmisi: 'Automatic', status: 'Perawatan', img: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&w=300&q=80' },
+        ];
+
+        let dataPelanggan = [
+            { id: 1, nama: 'Budi Pratama', nik: '3201992810001', hp: '081234567890', alamat: 'Jl. Sudirman No. 12, Jakarta' },
+            { id: 2, nama: 'Siti Sarah', nik: '3201992810002', hp: '085711223344', alamat: 'Jl. Merdeka No. 45, Bandung' }
+        ];
+
+        let dataDriver = [
+            { id: 1, nama: 'Rudi Widodo', sim: 'SIM-A-88912', hp: '08987654321', tarif: 150000, status: 'Ready' },
+            { id: 2, nama: 'Asep Saepudin', sim: 'SIM-A-55412', hp: '08778899001', tarif: 150000, status: 'Bertugas' }
+        ];
+
+        let dataTransaksi = [
+            {
+                kode: 'TRX-901',
+                pelangganId: 2,
+                kendaraanId: 2,
+                driverId: 2,
+                tglSewa: '2026-11-01',
+                tglKembali: '2026-11-04',
+                durasi: 3,
+                totalBiaya: 1800000,
+                metode: 'Transfer QRIS',
+                catatan: 'Jaminan KTP Asli',
+                status: 'Aktif',
+                tglTrx: '2026-11-01'
+            }
+        ];
+
+        let dashboardChartInstance = null;
+
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('trx-tgl-sewa').value = today;
+            document.getElementById('trx-tgl-kembali').value = today;
+            
+            initChart();
+            renderAllData();
+        };
+
+        // SWITCH TAB AUTH SIGN IN / REGISTER
+        function switchAuthTab(type) {
+            const btnSignin = document.getElementById('tab-btn-signin');
+            const btnRegister = document.getElementById('tab-btn-register');
+            const formSignin = document.getElementById('form-signin');
+            const formRegister = document.getElementById('form-register');
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            errorMsg.classList.add('hidden');
+
+            if (type === 'signin') {
+                btnSignin.className = "w-1/2 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md transition-all";
+                btnRegister.className = "w-1/2 py-2 rounded-lg text-gray-400 hover:text-white transition-all";
+                formSignin.classList.remove('hidden');
+                formRegister.classList.add('hidden');
+            } else {
+                btnRegister.className = "w-1/2 py-2 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md transition-all";
+                btnSignin.className = "w-1/2 py-2 rounded-lg text-gray-400 hover:text-white transition-all";
+                formRegister.classList.remove('hidden');
+                formSignin.classList.add('hidden');
+            }
+        }
+
+        // AUTH HANDLERS
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            const user = registeredUsers.find(acc => acc.username === u && acc.password === p);
+
+            if(user) {
+                currentUser = user;
+                errorMsg.classList.add('hidden');
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                
+                document.getElementById('user-display-name').innerText = user.name;
+                const initials = user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+                document.getElementById('user-avatar').innerText = initials || 'US';
+
+                showAlert(`Selamat Datang, ${user.name}! Login berhasil.`, 'success');
+            } else {
+                errorMsg.innerText = 'Username atau Password salah!';
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value.trim();
+            const u = document.getElementById('reg-username').value.trim();
+            const p = document.getElementById('reg-password').value.trim();
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            if (registeredUsers.some(acc => acc.username === u)) {
+                errorMsg.innerText = 'Username sudah terdaftar! Gunakan username lain.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            registeredUsers.push({ username: u, password: p, name: name });
+            
+            document.getElementById('login-username').value = u;
+            document.getElementById('login-password').value = p;
+            
+            switchAuthTab('signin');
+            errorMsg.classList.add('hidden');
+            
+            alert('Pendaftaran Berhasil! Silakan klik tombol "Masuk ke System" untuk masuk.');
+        }
+
+        function handleLogout() {
+            if(confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+                currentUser = null;
+                document.getElementById('app-container').classList.add('hidden');
+                document.getElementById('login-modal').classList.remove('hidden');
+            }
+        }
+
+        // TAB NAVIGATION
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-gradient-to-r', 'from-red-600/20', 'to-rose-600/20', 'border', 'border-red-500/40', 'text-red-400', 'shadow-neon-red');
+                btn.classList.add('text-gray-400');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-gradient-to-r', 'from-red-600/20', 'to-rose-600/20', 'border', 'border-red-500/40', 'text-red-400', 'shadow-neon-red');
+                activeNav.classList.remove('text-gray-400');
+            }
+
+            const titles = {
+                'dashboard': ['Dashboard Overview', 'Pantau performa rental kendaraan dan aktivitas transaksi secara real-time.'],
+                'master-kendaraan': ['Master Data Armada', 'Kelola daftar unit mobil dan motor yang siap disewakan.'],
+                'master-pelanggan': ['Database Pelanggan', 'Manajemen data diri dan kontak penyewaan pelanggan.'],
+                'master-driver': ['Data Supir / Driver', 'Kelola ketersediaan mitra supir profesional.'],
+                'transaksi-sewa': ['Form Transaksi Sewa', 'Proses pesanan sewa baru dengan kalkulasi biaya otomatis.'],
+                'laporan': ['Rekap Transaksi & Kuitansi', 'Riwayat lengkap transaksi sewa dan pengembalian unit.']
+            };
+
+            if(titles[tabId]) {
+                document.getElementById('page-title').innerText = titles[tabId][0];
+                document.getElementById('page-subtitle').innerText = titles[tabId][1];
+            }
+
+            renderAllData();
+        }
+
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+        }
+
+        function renderAllData() {
+            renderDashboard();
+            renderKendaraanTable();
+            renderPelangganTable();
+            renderDriverTable();
+            renderLaporanTable();
+            populateDropdowns();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            dashboardChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        label: 'Pendapatan (Juta Rp)',
+                        data: [1.2, 2.5, 1.8, 3.2, 4.5, 6.0, 5.2],
+                        backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                        borderColor: '#ef4444',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+        }
+
+        function renderDashboard() {
+            const total = dataKendaraan.length;
+            const mobil = dataKendaraan.filter(k => k.jenis === 'Mobil').length;
+            const motor = dataKendaraan.filter(k => k.jenis === 'Motor').length;
+            const tersewa = dataKendaraan.filter(k => k.status === 'Tersewa').length;
+            const pelanggan = dataPelanggan.length;
+            const totalRev = dataTransaksi.reduce((acc, t) => acc + t.totalBiaya, 0);
+
+            document.getElementById('stat-total-armada').innerText = total;
+            document.getElementById('stat-detail-armada').innerText = `${mobil} Mobil • ${motor} Motor`;
+            document.getElementById('stat-unit-tersewa').innerText = tersewa;
+            document.getElementById('stat-total-pelanggan').innerText = pelanggan;
+            document.getElementById('stat-total-pendapatan').innerText = formatRupiah(totalRev);
+
+            const ready = dataKendaraan.filter(k => k.status === 'Tersedia').length;
+            const servis = dataKendaraan.filter(k => k.status === 'Perawatan').length;
+
+            const rPct = total ? Math.round((ready/total)*100) : 0;
+            const tPct = total ? Math.round((tersewa/total)*100) : 0;
+            const sPct = total ? Math.round((servis/total)*100) : 0;
+
+            document.getElementById('armada-progress-container').innerHTML = `
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-red-400">Ready (Tersedia)</span>
+                        <span class="text-gray-300">${ready} Unit (${rPct}%)</span>
+                    </div>
+                    <div class="w-full bg-gray-950 rounded-full h-2">
+                        <div class="bg-red-500 h-2 rounded-full" style="width: ${rPct}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-orange-400">Sedang Tersewa</span>
+                        <span class="text-gray-300">${tersewa} Unit (${tPct}%)</span>
+                    </div>
+                    <div class="w-full bg-gray-950 rounded-full h-2">
+                        <div class="bg-orange-500 h-2 rounded-full" style="width: ${tPct}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-rose-400">Perawatan (Servis)</span>
+                        <span class="text-gray-300">${servis} Unit (${sPct}%)</span>
+                    </div>
+                    <div class="w-full bg-gray-950 rounded-full h-2">
+                        <div class="bg-rose-500 h-2 rounded-full" style="width: ${sPct}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveKendaraan(e) {
+            e.preventDefault();
+            const id = document.getElementById('kendaraan-id').value;
+            const jenis = document.getElementById('kendaraan-jenis').value;
+            const nama = document.getElementById('kendaraan-nama').value;
+            const plat = document.getElementById('kendaraan-plat').value;
+            const harga = parseInt(document.getElementById('kendaraan-harga').value);
+            const transmisi = document.getElementById('kendaraan-transmisi').value;
+            const imgInput = document.getElementById('kendaraan-gambar').value;
+            const status = document.getElementById('kendaraan-status').value;
+
+            const defaultImg = jenis === 'Mobil' 
+                ? 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=300&q=80' 
+                : 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=300&q=80';
+
+            const img = imgInput ? imgInput : defaultImg;
+
+            if(id) {
+                const idx = dataKendaraan.findIndex(k => k.id == id);
+                if(idx !== -1) dataKendaraan[idx] = { id: parseInt(id), jenis, nama, plat, harga, transmisi, status, img };
+                showAlert('Data Armada Berhasil Diperbarui!', 'success');
+            } else {
+                const newId = dataKendaraan.length ? Math.max(...dataKendaraan.map(k => k.id)) + 1 : 1;
+                dataKendaraan.push({ id: newId, jenis, nama, plat, harga, transmisi, status, img });
+                showAlert('Armada Baru Berhasil Ditambahkan!', 'success');
+            }
+
+            resetFormKendaraan();
+            renderAllData();
+        }
+
+        // RENDER TABLE KENDARAAN + GAMBAR ARMADA
+        function renderKendaraanTable() {
+            const query = document.getElementById('search-kendaraan').value.toLowerCase();
+            const filtered = dataKendaraan.filter(k => k.nama.toLowerCase().includes(query) || k.plat.toLowerCase().includes(query));
+
+            const tbody = document.getElementById('table-kendaraan-body');
+            tbody.innerHTML = filtered.map(k => {
+                let badge = k.status === 'Tersedia' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                           (k.status === 'Tersewa' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30');
+
+                return `
+                    <tr class="hover:bg-red-950/20 transition">
+                        <td class="p-3">
+                            <img src="${k.img}" alt="${k.nama}" class="w-12 h-9 object-cover rounded-lg border border-red-900/40 bg-gray-950">
+                        </td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${k.jenis === 'Mobil' ? 'bg-red-500/20 text-red-400' : 'bg-rose-500/20 text-rose-400'}">${k.jenis}</span></td>
+                        <td class="p-3 font-semibold text-white">${k.nama} <span class="text-[10px] text-gray-500 font-normal">(${k.transmisi})</span></td>
+                        <td class="p-3 font-mono uppercase text-gray-400">${k.plat}</td>
+                        <td class="p-3 font-medium text-red-400">${formatRupiah(k.harga)}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badge}">${k.status}</span></td>
+                        <td class="p-3 text-right space-x-1">
+                            <button onclick="editKendaraan(${k.id})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteKendaraan(${k.id})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function editKendaraan(id) {
+            const k = dataKendaraan.find(item => item.id === id);
+            if(k) {
+                document.getElementById('kendaraan-id').value = k.id;
+                document.getElementById('kendaraan-jenis').value = k.jenis;
+                document.getElementById('kendaraan-nama').value = k.nama;
+                document.getElementById('kendaraan-plat').value = k.plat;
+                document.getElementById('kendaraan-harga').value = k.harga;
+                document.getElementById('kendaraan-transmisi').value = k.transmisi;
+                document.getElementById('kendaraan-gambar').value = k.img || '';
+                document.getElementById('kendaraan-status').value = k.status;
+            }
+        }
+
+        function deleteKendaraan(id) {
+            if(confirm('Hapus unit armada ini dari database?')) {
+                dataKendaraan = dataKendaraan.filter(k => k.id !== id);
+                showAlert('Data armada dihapus.', 'info');
+                renderAllData();
+            }
+        }
+
+        function resetFormKendaraan() {
+            document.getElementById('form-kendaraan').reset();
+            document.getElementById('kendaraan-id').value = '';
+        }
+
+        function savePelanggan(e) {
+            e.preventDefault();
+            const id = document.getElementById('pelanggan-id').value;
+            const nama = document.getElementById('pelanggan-nama').value;
+            const nik = document.getElementById('pelanggan-nik').value;
+            const hp = document.getElementById('pelanggan-hp').value;
+            const alamat = document.getElementById('pelanggan-alamat').value;
+
+            if(id) {
+                const idx = dataPelanggan.findIndex(p => p.id == id);
+                if(idx !== -1) dataPelanggan[idx] = { id: parseInt(id), nama, nik, hp, alamat };
+                showAlert('Data Pelanggan diperbarui!', 'success');
+            } else {
+                const newId = dataPelanggan.length ? Math.max(...dataPelanggan.map(p => p.id)) + 1 : 1;
+                dataPelanggan.push({ id: newId, nama, nik, hp, alamat });
+                showAlert('Pelanggan Baru Terdaftar!', 'success');
+            }
+
+            resetFormPelanggan();
+            renderAllData();
+        }
+
+        function renderPelangganTable() {
+            const tbody = document.getElementById('table-pelanggan-body');
+            tbody.innerHTML = dataPelanggan.map(p => `
+                <tr class="hover:bg-red-950/20 transition">
+                    <td class="p-3 font-semibold text-white">${p.nama}</td>
+                    <td class="p-3 font-mono text-gray-400">${p.nik}</td>
+                    <td class="p-3 text-red-400 font-mono">${p.hp}</td>
+                    <td class="p-3 text-gray-400 truncate max-w-xs">${p.alamat}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editPelanggan(${p.id})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deletePelanggan(${p.id})" class="text-red-500 hover:text-red-400 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editPelanggan(id) {
+            const p = dataPelanggan.find(item => item.id === id);
+            if(p) {
+                document.getElementById('pelanggan-id').value = p.id;
+                document.getElementById('pelanggan-nama').value = p.nama;
+                document.getElementById('pelanggan-nik').value = p.nik;
+                document.getElementById('pelanggan-hp').value = p.hp;
+                document.getElementById('pelanggan-alamat').value = p.alamat;
+            }
+        }
+
+        function deletePelanggan(id) {
+            if(confirm('Hapus pelanggan ini?')) {
+                dataPelanggan = dataPelanggan.filter(p => p.id !== id);
+                renderAllData();
+            }
+        }
+
+        function resetFormPelanggan() {
+            document.getElementById('form-pelanggan').reset();
+            document.getElementById('pelanggan-id').value = '';
+        }
+
+        function saveDriver(e) {
+            e.preventDefault();
+            const id = document.getElementById('driver-id').value;
+            const nama = document.getElementById('driver-nama').value;
+            const sim = document.getElementById('driver-sim').value;
+            const hp = document.getElementById('driver-hp').value;
+            const tarif = parseInt(document.getElementById('driver-tarif').value);
+            const status = document.getElementById('driver-status').value;
+
+            if(id) {
+                const idx = dataDriver.findIndex(d => d.id == id);
+                if(idx !== -1) dataDriver[idx] = { id: parseInt(id), nama, sim, hp, tarif, status };
+                showAlert('Data Driver diperbarui!', 'success');
+            } else {
+                const newId = dataDriver.length ? Math.max(...dataDriver.map(d => d.id)) + 1 : 1;
+                dataDriver.push({ id: newId, nama, sim, hp, tarif, status });
+                showAlert('Driver Baru ditambahkan!', 'success');
+            }
+
+            resetFormDriver();
+            renderAllData();
+        }
+
+        function renderDriverTable() {
+            const tbody = document.getElementById('table-driver-body');
+            tbody.innerHTML = dataDriver.map(d => `
+                <tr class="hover:bg-red-950/20 transition">
+                    <td class="p-3 font-semibold text-white">${d.nama}</td>
+                    <td class="p-3 font-mono text-gray-400">${d.sim}</td>
+                    <td class="p-3 text-gray-300 font-mono">${d.hp}</td>
+                    <td class="p-3 font-medium text-emerald-400">${formatRupiah(d.tarif)}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${d.status}</span></td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editDriver(${d.id})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteDriver(${d.id})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editDriver(id) {
+            const d = dataDriver.find(item => item.id === id);
+            if(d) {
+                document.getElementById('driver-id').value = d.id;
+                document.getElementById('driver-nama').value = d.nama;
+                document.getElementById('driver-sim').value = d.sim;
+                document.getElementById('driver-hp').value = d.hp;
+                document.getElementById('driver-tarif').value = d.tarif;
+                document.getElementById('driver-status').value = d.status;
+            }
+        }
+
+        function deleteDriver(id) {
+            if(confirm('Hapus supir ini?')) {
+                dataDriver = dataDriver.filter(d => d.id !== id);
+                renderAllData();
+            }
+        }
+
+        function resetFormDriver() {
+            document.getElementById('form-driver').reset();
+            document.getElementById('driver-id').value = '';
+        }
+
+        function populateDropdowns() {
+            const pSel = document.getElementById('trx-pelanggan-id');
+            pSel.innerHTML = dataPelanggan.map(p => `<option value="${p.id}">${p.nama} (${p.nik})</option>`).join('');
+
+            const kSel = document.getElementById('trx-kendaraan-id');
+            const readyK = dataKendaraan.filter(k => k.status === 'Tersedia');
+            if(readyK.length === 0) {
+                kSel.innerHTML = `<option value="">-- Semua Unit Sedang Tersewa --</option>`;
+            } else {
+                kSel.innerHTML = readyK.map(k => `<option value="${k.id}">[${k.jenis}] ${k.nama} - ${k.plat} (${formatRupiah(k.harga)}/hr)</option>`).join('');
+            }
+
+            const dSel = document.getElementById('trx-driver-id');
+            const readyD = dataDriver.filter(d => d.status === 'Ready');
+            dSel.innerHTML = `<option value="none">Lepas Kunci (Tanpa Supir)</option>` + readyD.map(d => `<option value="${d.id}">${d.nama} (${formatRupiah(d.tarif)}/hr)</option>`).join('');
+
+            calculateRentalTotal();
+        }
+
+        function calculateRentalTotal() {
+            const kId = document.getElementById('trx-kendaraan-id').value;
+            const dId = document.getElementById('trx-driver-id').value;
+            const tgl1 = new Date(document.getElementById('trx-tgl-sewa').value);
+            const tgl2 = new Date(document.getElementById('trx-tgl-kembali').value);
+
+            if(!kId || isNaN(tgl1) || isNaN(tgl2)) return;
+
+            let durasi = Math.ceil((tgl2 - tgl1) / (1000 * 60 * 60 * 24));
+            if(durasi <= 0) durasi = 1;
+
+            const ken = dataKendaraan.find(k => k.id == kId);
+            const kBiaya = ken ? ken.harga * durasi : 0;
+
+            let dBiaya = 0;
+            if(dId !== 'none') {
+                const drv = dataDriver.find(d => d.id == dId);
+                dBiaya = drv ? drv.tarif * durasi : 0;
+            }
+
+            const total = kBiaya + dBiaya;
+
+            document.getElementById('calc-durasi').innerText = `${durasi} Hari`;
+            document.getElementById('calc-biaya-kendaraan').innerText = formatRupiah(kBiaya);
+            document.getElementById('calc-biaya-driver').innerText = formatRupiah(dBiaya);
+            document.getElementById('calc-total').innerText = formatRupiah(total);
+        }
+
+        function processTransaksiSewa(e) {
+            e.preventDefault();
+            const pelangganId = parseInt(document.getElementById('trx-pelanggan-id').value);
+            const kendaraanId = parseInt(document.getElementById('trx-kendaraan-id').value);
+            const driverVal = document.getElementById('trx-driver-id').value;
+            const driverId = driverVal === 'none' ? null : parseInt(driverVal);
+            const tglSewa = document.getElementById('trx-tgl-sewa').value;
+            const tglKembali = document.getElementById('trx-tgl-kembali').value;
+            const metode = document.getElementById('trx-metode-bayar').value;
+            const catatan = document.getElementById('trx-catatan').value;
+
+            if(!kendaraanId) {
+                alert('Pilih armada yang tersedia!');
+                return;
+            }
+
+            const tgl1 = new Date(tglSewa);
+            const tgl2 = new Date(tglKembali);
+            let durasi = Math.ceil((tgl2 - tgl1) / (1000 * 60 * 60 * 24));
+            if(durasi <= 0) durasi = 1;
+
+            const ken = dataKendaraan.find(k => k.id === kendaraanId);
+            const drv = driverId ? dataDriver.find(d => d.id === driverId) : null;
+            const totalBiaya = (ken.harga * durasi) + (drv ? drv.tarif * durasi : 0);
+
+            const kodeTrx = 'TRX-' + Math.floor(100 + Math.random() * 900);
+            const today = new Date().toISOString().split('T')[0];
+
+            dataTransaksi.push({
+                kode: kodeTrx,
+                pelangganId,
+                kendaraanId,
+                driverId,
+                tglSewa,
+                tglKembali,
+                durasi,
+                totalBiaya,
+                metode,
+                catatan,
+                status: 'Aktif',
+                tglTrx: today
+            });
+
+            const kIdx = dataKendaraan.findIndex(k => k.id === kendaraanId);
+            if(kIdx !== -1) dataKendaraan[kIdx].status = 'Tersewa';
+
+            if(driverId) {
+                const dIdx = dataDriver.findIndex(d => d.id === driverId);
+                if(dIdx !== -1) dataDriver[dIdx].status = 'Bertugas';
+            }
+
+            showAlert(`Transaksi ${kodeTrx} Berhasil Diterbitkan!`, 'success');
+            renderAllData();
+            showNotaModal(kodeTrx);
+            switchTab('laporan');
+        }
+
+        function renderLaporanTable() {
+            const tbody = document.getElementById('table-laporan-body');
+            tbody.innerHTML = dataTransaksi.map(t => {
+                const cust = dataPelanggan.find(p => p.id === t.pelangganId) || { nama: '-' };
+                const ken = dataKendaraan.find(k => k.id === t.kendaraanId) || { nama: '-' };
+                const isAktif = t.status === 'Aktif';
+
+                return `
+                    <tr class="hover:bg-red-950/20 transition">
+                        <td class="p-3 font-mono font-bold text-red-400">${t.kode}</td>
+                        <td class="p-3 font-semibold text-white">${cust.nama}</td>
+                        <td class="p-3 text-gray-300">${ken.nama}</td>
+                        <td class="p-3 text-gray-400">${t.durasi} Hari</td>
+                        <td class="p-3 font-bold text-emerald-400">${formatRupiah(t.totalBiaya)}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isAktif ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                                ${t.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-center space-x-1">
+                            ${isAktif ? `<button onclick="prosesPengembalian('${t.kode}')" class="px-2.5 py-1 bg-orange-500/20 hover:bg-orange-500/40 text-orange-300 rounded-lg text-[10px] font-bold transition">Selesaikan</button>` : ''}
+                            <button onclick="showNotaModal('${t.kode}')" class="px-2.5 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-lg text-[10px] font-bold transition">Kuitansi</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function prosesPengembalian(kodeTrx) {
+            if(confirm(`Konfirmasi pengembalian armada untuk transaksi ${kodeTrx}?`)) {
+                const tIdx = dataTransaksi.findIndex(t => t.kode === kodeTrx);
+                if(tIdx !== -1) {
+                    const trx = dataTransaksi[tIdx];
+                    trx.status = 'Selesai';
+
+                    const kIdx = dataKendaraan.findIndex(k => k.id === trx.kendaraanId);
+                    if(kIdx !== -1) dataKendaraan[kIdx].status = 'Tersedia';
+
+                    if(trx.driverId) {
+                        const dIdx = dataDriver.findIndex(d => d.id === trx.driverId);
+                        if(dIdx !== -1) dataDriver[dIdx].status = 'Ready';
+                    }
+
+                    showAlert(`Armada untuk ${kodeTrx} telah resmi dikembalikan.`, 'success');
+                    renderAllData();
+                }
+            }
+        }
+
+        function showNotaModal(kodeTrx) {
+            const trx = dataTransaksi.find(t => t.kode === kodeTrx);
+            if(!trx) return;
+
+            const cust = dataPelanggan.find(p => p.id === trx.pelangganId) || { nama: '-', hp: '-' };
+            const ken = dataKendaraan.find(k => k.id === trx.kendaraanId) || { nama: '-', plat: '-' };
+            const drv = trx.driverId ? (dataDriver.find(d => d.id === trx.driverId) || { nama: '-' }).nama : 'Lepas Kunci';
+
+            document.getElementById('nota-kode').innerText = `#${trx.kode}`;
+            document.getElementById('nota-tgl').innerText = trx.tglTrx;
+            document.getElementById('nota-pelanggan-nama').innerText = cust.nama;
+            document.getElementById('nota-pelanggan-hp').innerText = cust.hp;
+            document.getElementById('nota-kendaraan-nama').innerText = ken.nama;
+            document.getElementById('nota-kendaraan-plat').innerText = ken.plat;
+            document.getElementById('nota-periode').innerText = `${trx.tglSewa} s/d ${trx.tglKembali} (${trx.durasi} Hari)`;
+            document.getElementById('nota-driver').innerText = drv;
+            document.getElementById('nota-metode').innerText = trx.metode;
+            document.getElementById('nota-total').innerText = formatRupiah(trx.totalBiaya);
+            document.getElementById('nota-kasir-nama').innerText = `( ${currentUser ? currentUser.name : 'Admin Rental'} )`;
+
+            document.getElementById('modal-nota').classList.remove('hidden');
+        }
+
+        function closeModalNota() {
+            document.getElementById('modal-nota').classList.add('hidden');
+        }
+
+        function showAlert(msg, type = 'info') {
+            const banner = document.getElementById('alert-banner');
+            const message = document.getElementById('alert-message');
+            message.innerText = msg;
+
+            banner.classList.remove('hidden');
+            setTimeout(() => closeAlert(), 4000);
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-banner').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
